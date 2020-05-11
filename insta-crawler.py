@@ -21,7 +21,7 @@ def randomSleep(a):
     sleep(time_to_sleep)
 
 
-class InstaBot:
+class InstaCrawler:
     def __init__(self, username, pw):
         # Log into <username> account
 
@@ -327,7 +327,7 @@ import secrets
 uname, pw = secrets.get_user('alt')
 
 
-my_bot = InstaBot(uname, pw)
+my_bot = InstaCrawler(uname, pw)
 
 #my_bot.like_n_photos_of_user("chefelirandahan")
 #my_bot.like_n_photos_of_user("damirbar")
