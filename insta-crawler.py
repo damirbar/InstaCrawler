@@ -371,22 +371,3 @@ if __name__ == '__main__':
     main()
 
 
-#import secrets
-#uname, pw = secrets.get_user('dummy')
-#uname, pw = secrets.get_user('real')
-#uname, pw = secrets.get_user('alt')
-#my_bot = InstaCrawler(uname, pw)
-
-#my_bot.like_n_photos_of_user("chefelirandahan")
-#my_bot.like_n_photos_of_user("damirbar")
-#my_bot.like_n_photos_of_user("stavhi")
-#my_bot.like_n_photos_of_user("sefishalom")
-#my_bot.like_n_photos_of_user("chenlevyy")
-#my_bot.like_n_photos_of_user("lance210", 10)
-
-
-#my_bot.like_n_photos_in_hashtag('memes', 10)
-#my_bot.follow_n_profiles_in_hashtag('memes', 10)
-
-
-#my_bot.like_all_following_photos(10)
