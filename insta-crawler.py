@@ -2,6 +2,7 @@
 from time import sleep
 from enum import Enum
 from random import uniform
+import argparse
 
 # Selenium imports
 from selenium import webdriver
@@ -318,16 +319,63 @@ class InstaCrawler:
 
 
 
-
-#from secrets import get_user
 import secrets
-
 #uname, pw = secrets.get_user('dummy')
 #uname, pw = secrets.get_user('real')
 uname, pw = secrets.get_user('alt')
-
-
 my_bot = InstaCrawler(uname, pw)
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Instagram bot')
+
+    wo_args = parser.add_argument_group('w/o args')
+    w_args  = parser.add_argument_group('w/ args')
+
+    w_args.add_argument('-u', '--like-user-photos', help='The user to like his/her photos (can be limited by -n)')
+    w_args.add_argument('-t', '--like-hashtag-photos', help='The hashtag to like photos by (can be limited by -n)')
+    w_args.add_argument('-f', '--follow-hashtag-profiles', help='Follow n profiles hashtag (can be limited by -n, default=100)')
+    
+    wo_args.add_argument('-a', '--like-following-photos', action="store_true", help='Like photos of profiles you follow (can be limited by -n)')
+
+    w_args.add_argument('-n', '--number', type=int, help='Number of photos to like')
+
+
+    args = parser.parse_args()
+
+    n = -1
+    if args.number:
+        n = args.number
+
+    if args.like_following_photos:
+        my_bot.like_all_following_photos(n)
+        return
+
+    if args.like_user_photos:
+        user_to_like = args.like_user_photos
+        my_bot.like_n_photos_of_user(user_to_like, n)
+        return
+
+    if args.like_hashtag_photos:
+        hashtag_to_like = args.like_hashtag_photos
+        my_bot.like_n_photos_of_user('#' + hashtag_to_like, n)
+        return
+    
+    if args.follow_hashtag_profiles:
+        if n < 0 or n > 100 :
+            n = 100
+        hashtag_to_follow = args.follow_hashtag_profiles
+        my_bot.follow_n_profiles_in_hashtag('#' + hashtag_to_follow, n)
+
+if __name__ == '__main__':
+    main()
+
+
+#import secrets
+#uname, pw = secrets.get_user('dummy')
+#uname, pw = secrets.get_user('real')
+#uname, pw = secrets.get_user('alt')
+#my_bot = InstaCrawler(uname, pw)
 
 #my_bot.like_n_photos_of_user("chefelirandahan")
 #my_bot.like_n_photos_of_user("damirbar")
@@ -337,10 +385,8 @@ my_bot = InstaCrawler(uname, pw)
 #my_bot.like_n_photos_of_user("lance210", 10)
 
 
-#my_bot.search('#likeforlike')
-
-#my_bot.like_n_photos_in_hashtag('#memes', 10)
-#my_bot.follow_n_profiles_in_hashtag('#memes', 10)
+#my_bot.like_n_photos_in_hashtag('memes', 10)
+#my_bot.follow_n_profiles_in_hashtag('memes', 10)
 
 
 #my_bot.like_all_following_photos(10)
