@@ -1,11 +1,11 @@
 ## Instagram bot
 
-### Note: instagram constantly change their front end so this code won't work unless it is maintained
+**Note: instagram constantly change their front end so this code won't work unless it is maintained**
 
 Inspired by aj-4/ig-followers
 
 
-Run examples:
+__**Run examples:**__
 
 python3 insta-crawler.py --like-hashtag-photos photooftheday --number 5
 
