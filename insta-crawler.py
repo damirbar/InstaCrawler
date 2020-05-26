@@ -3,11 +3,19 @@ from time import sleep
 from enum import Enum
 from random import uniform
 import argparse
+import random
 
 # Selenium imports
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support import ui
+
+
+
+from knowledge import meme_pages, meme_comments
 
 
 class LikeStatus(Enum):
@@ -18,7 +26,7 @@ class LikeStatus(Enum):
 
 def randomSleep(a):
     # Random sleeping for a less bot-like behavior
-    time_to_sleep = uniform(a, a+0.7)
+    time_to_sleep = uniform(a, a*1.7)
     sleep(time_to_sleep)
 
 
@@ -107,7 +115,7 @@ class InstaCrawler:
         following = self._get_names()
 
         for name in following:
-            self.like_n_photos_of_user(name, num_photos)
+            self.like_n_photos_of_user(name, sleep_time=0, n=num_photos)
 
 
     def _follow_within_photo(self, photo_url):
@@ -130,16 +138,12 @@ class InstaCrawler:
                 follow_button.click()
                 randomSleep(1)
             else:
-                #print("This photo is already liked")
                 ret_val = LikeStatus.LIKED_ALREADY
 
-            #self.driver.close()
         except Exception as e:
             print(str(e))
             ret_val = LikeStatus.LIKE_ERROR
-            #self.driver.close()
         
-        #self.driver.switch_to.window(self.driver.window_handles[0])
 
         return ret_val
 
@@ -161,6 +165,31 @@ class InstaCrawler:
                 ++index) { items[arguments[0].attributes[index].name] = arguments[0].attributes[index].value }; return items;', \
                 elem)
         return elem_items
+
+    def _comment_single_photo(self, photo_url):
+
+        try:
+            self.driver.get(photo_url)
+            randomSleep(3)
+
+            comment_section = self.driver.find_element_by_class_name('Ypffh')
+            comment_section.click()
+            randomSleep(3)
+            comment_section = self.driver.find_element_by_class_name('Ypffh')
+            comment_section.click()
+
+            comment = random.choice(meme_comments)
+
+            comment_section.clear()
+            comment_section.send_keys(comment)
+            randomSleep(0.5)
+            comment_section.send_keys(Keys.ENTER)
+            randomSleep(2)
+            comment_section.send_keys(Keys.ENTER)
+            randomSleep(1)
+
+        except Exception as e:
+            print(str(e))
 
     def _like_single_photo(self, photo_url):
 
@@ -194,7 +223,27 @@ class InstaCrawler:
 
         return ret_val
 
-    def like_n_photos_of_user(self, user, n=-1):
+    def comment_n_photos_of_user(self, user, sleep_time=2, n=-1):
+        # Comment <n> photos of a given profile.
+        # The default value of n (-1) is infinity, meaning every photo
+
+        num_of_new_likes = 0
+
+        pics = self._get_n_photos_of_user(user, n)
+
+        if n != -1:
+            while len(pics) > n:
+                pics.pop()
+        
+        print(f"Going to comment on {len(pics)} pics")
+        for pic in pics:
+            self._comment_single_photo(pic)
+            randomSleep(sleep_time)
+            
+
+        print(f"Liked {num_of_new_likes} out of a total of {len(pics)} photos")
+
+    def like_n_photos_of_user(self, user, sleep_time=2, n=-1):
         # Like <n> photos of a given profile.
         # The default value of n (-1) is infinity, meaning every photo
 
@@ -205,6 +254,8 @@ class InstaCrawler:
         for pic in pics:
             if self._like_single_photo(pic) == LikeStatus.LIKED_NEW:
                 num_of_new_likes += 1
+                randomSleep(sleep_time)
+            
 
         print(f"Liked {num_of_new_likes} out of a total of {len(pics)} photos")
 
@@ -222,8 +273,6 @@ class InstaCrawler:
             pics = self._scroll_page_and_get_n_photos(speed=1000, num_photos=n)
 
         print(f"The number of photos found is {len(pics)}")
-        for elem in pics:
-            print(elem)
 
         return pics
 
@@ -243,9 +292,6 @@ class InstaCrawler:
             self.driver.execute_script("window.scrollTo(0, {});".format(current_scroll_position))
             randomSleep(1.5)
             new_height = self.driver.execute_script("return document.body.scrollHeight")
-
-            # TEMPORARY
-            #break
 
         return pic_set
 
@@ -272,9 +318,10 @@ class InstaCrawler:
         first_option_path = '//*[@id="react-root"]/section/nav/div[2]/div/div/div[2]/div[2]/div[2]/div/a[1]'
         self.driver.find_element_by_xpath(first_option_path).click()
 
-    def like_n_photos_in_hashtag(self, tag, n):
+    def like_n_photos_in_hashtag(self, tag, sleep_time, n):
         # TODO: refactor this one and "like_n_photos_of_user"
         self.search(tag)
+        randomSleep(1)
 
         num_of_new_likes = 0
 
@@ -319,11 +366,10 @@ class InstaCrawler:
 
 
 
-import secrets
-#uname, pw = secrets.get_user('dummy')
-#uname, pw = secrets.get_user('real')
-uname, pw = secrets.get_user('alt')
-my_bot = InstaCrawler(uname, pw)
+def get_bot(uname):
+    import secrets
+    uname, pw = secrets.get_user(uname)
+    return InstaCrawler(uname, pw)
 
 
 def main():
@@ -333,6 +379,7 @@ def main():
     w_args  = parser.add_argument_group('w/ args')
 
     w_args.add_argument('-u', '--like-user-photos', help='The user to like his/her photos (can be limited by -n)')
+    w_args.add_argument('-c', '--comment-user-photos', help='The user to comment on his/her photos (can be limited by -n)')
     w_args.add_argument('-t', '--like-hashtag-photos', help='The hashtag to like photos by (can be limited by -n)')
     w_args.add_argument('-f', '--follow-hashtag-profiles', help='Follow n profiles hashtag (can be limited by -n, default=100)')
     
@@ -340,8 +387,10 @@ def main():
 
     w_args.add_argument('-n', '--number', type=int, help='Number of photos to like')
 
-
     args = parser.parse_args()
+
+    my_bot = get_bot('alt')
+
 
     n = -1
     if args.number:
@@ -353,19 +402,24 @@ def main():
 
     if args.like_user_photos:
         user_to_like = args.like_user_photos
-        my_bot.like_n_photos_of_user(user_to_like, n)
+        my_bot.like_n_photos_of_user(user_to_like, sleep_time=0, n=n)
+        return
+
+    if args.comment_user_photos:
+        user_to_comment = args.like_user_photos
+        my_bot.comment_n_photos_of_user(user_to_comment, sleep_time=0, n=n)
         return
 
     if args.like_hashtag_photos:
         hashtag_to_like = args.like_hashtag_photos
-        my_bot.like_n_photos_of_user('#' + hashtag_to_like, n)
+        my_bot.like_n_photos_in_hashtag('#' + hashtag_to_like, sleep_time=0, n=n)
         return
     
     if args.follow_hashtag_profiles:
         if n < 0 or n > 100 :
             n = 100
         hashtag_to_follow = args.follow_hashtag_profiles
-        my_bot.follow_n_profiles_in_hashtag('#' + hashtag_to_follow, n)
+        my_bot.follow_n_profiles_in_hashtag('#' + hashtag_to_follow, n=n)
 
 if __name__ == '__main__':
     main()
